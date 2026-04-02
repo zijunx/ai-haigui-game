@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Key, LogOut, MessageSquareText, Sparkles, BookOpen } from 'lucide-react';
 import ChatBox from '../components/ChatBox';
 import { stories } from '../data/stories';
-import type { TMessage, TStory } from '../types';
+import { askAI } from '../api';
+import type { TMessage } from '../types';
 
 const Game: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,43 +38,40 @@ const Game: React.FC = () => {
     ]);
   }, [story, navigate]);
 
-  const handleSendMessage = (content: string) => {
-    const newMessage: TMessage = {
+  const handleSendMessage = async (content: string) => {
+    if (!story) return;
+
+    // 1. 立即显示用户消息
+    const userMsg: TMessage = {
       id: Date.now().toString(),
       role: 'user',
       content,
       timestamp: Date.now(),
     };
-    
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
 
-    // Mock AI logic - in a real app, this would call an API with story.answer and keyPoints
-    setTimeout(() => {
-      const lowerContent = content.toLowerCase();
-      let response = '与此无关。';
-      
-      // Simple logic for mock demonstration based on keywords in answer
-      if (story) {
-        const keywords = story.answer.split('，').concat(story.keyPoints);
-        const matchCount = keywords.filter(k => content.includes(k)).length;
-        
-        if (matchCount > 0 || content.includes('死') || content.includes('人')) {
-           response = content.endsWith('吗？') || content.endsWith('？') ? '是。' : '正在分析... 是。';
-        } else {
-           response = '不是。';
-        }
-      }
-
-      const aiResponse: TMessage = {
+    // 2. 调用 AI API
+    try {
+      const aiText = await askAI(content, story);
+      const aiMsg: TMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response,
+        content: aiText,
         timestamp: Date.now(),
       };
-      setMessages((prev) => [...prev, aiResponse]);
+      setMessages((prev) => [...prev, aiMsg]);
+    } catch (err) {
+      const errMsg: TMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `⚠️ 裁判暂时失联，请稍后再试。\n（${err instanceof Error ? err.message : '未知错误'}）`,
+        timestamp: Date.now(),
+      };
+      setMessages((prev) => [...prev, errMsg]);
+    } finally {
       setIsLoading(false);
-    }, 1200);
+    }
   };
 
   if (!story) return null;

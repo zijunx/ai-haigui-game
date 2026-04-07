@@ -1,6 +1,8 @@
 import type { TStory, TMessage } from './types';
 
-const BACKEND_API_URL = '/api/chat';
+//const BACKEND_API_URL = '/api/chat';
+const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL;
+
 const TIMEOUT_MS = 15000; // 15秒超时
 
 export interface AIResponse {

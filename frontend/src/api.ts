@@ -1,4 +1,4 @@
-throw new Error("ASKAI FILE LOADED");
+//throw new Error("ASKAI FILE LOADED");
 import type { TStory, TMessage } from './types';
 
 //const BACKEND_API_URL = '/api/chat';

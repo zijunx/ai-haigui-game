@@ -4,8 +4,12 @@ import GameCard from '../components/GameCard';
 import { Sparkles, Ghost } from 'lucide-react';
 
 const Home: React.FC = () => {
+  const easyStories = stories.filter(s => s.difficulty === 'easy');
+  const mediumStories = stories.filter(s => s.difficulty === 'medium');
+  const hardStories = stories.filter(s => s.difficulty === 'hard');
+
   return (
-    <div className="min-h-screen bg-slate-900 selection:bg-amber-400 selection:text-slate-900">
+    <div className="min-h-screen bg-slate-900 selection:bg-amber-400 selection:text-slate-900 animate-in fade-in duration-700">
       {/* Dynamic Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-400/5 blur-[120px] rounded-full"></div>
@@ -36,22 +40,57 @@ const Home: React.FC = () => {
         </header>
 
         {/* Gallery Section */}
-        <main>
-          <div className="flex items-center justify-between mb-10 border-b border-slate-800 pb-6">
-            <h2 className="text-xl font-bold text-slate-100 flex items-center gap-3">
-              <span className="w-2 h-2 bg-amber-400 rounded-full animate-ping"></span>
-              当前活跃剧本
-            </h2>
-            <div className="text-slate-500 text-sm">
-              共 {stories.length} 个挑战
-            </div>
-          </div>
+        <main className="space-y-16">
+          {easyStories.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-10 border-b border-slate-800 pb-6">
+                <h2 className="text-xl font-bold text-slate-100 flex items-center gap-3">
+                  <span className="w-2 h-2 bg-emerald-400 rounded-full animate-ping relative"><span className="absolute inset-0 bg-emerald-400 rounded-full opacity-50"></span></span>
+                  简单（新手）
+                </h2>
+                <div className="text-slate-500 text-sm">{easyStories.length} 个挑战</div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                {easyStories.map((story) => (
+                  <GameCard key={story.id} story={story} />
+                ))}
+              </div>
+            </section>
+          )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {stories.map((story) => (
-              <GameCard key={story.id} story={story} />
-            ))}
-          </div>
+          {mediumStories.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-10 border-b border-slate-800 pb-6">
+                <h2 className="text-xl font-bold text-slate-100 flex items-center gap-3">
+                  <span className="w-2 h-2 bg-amber-400 rounded-full animate-ping relative"><span className="absolute inset-0 bg-amber-400 rounded-full opacity-50"></span></span>
+                  中等（推理）
+                </h2>
+                <div className="text-slate-500 text-sm">{mediumStories.length} 个挑战</div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                {mediumStories.map((story) => (
+                  <GameCard key={story.id} story={story} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {hardStories.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-10 border-b border-slate-800 pb-6">
+                <h2 className="text-xl font-bold text-slate-100 flex items-center gap-3">
+                  <span className="w-2 h-2 bg-red-500 rounded-full animate-ping relative"><span className="absolute inset-0 bg-red-500 rounded-full opacity-50"></span></span>
+                  困难（空间 / 逻辑）
+                </h2>
+                <div className="text-slate-500 text-sm">{hardStories.length} 个挑战</div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                {hardStories.map((story) => (
+                  <GameCard key={story.id} story={story} />
+                ))}
+              </div>
+            </section>
+          )}
         </main>
 
         {/* Footer info */}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { Home, Sparkles, AlertTriangle, ChevronDown, ChevronUp, MessageCircle, Quote } from 'lucide-react';
+import { Home, Sparkles, AlertTriangle, ChevronDown, ChevronUp, MessageCircle, Quote, RotateCcw } from 'lucide-react';
 import { stories } from '../data/stories';
 import type { TMessage } from '../types';
 
@@ -48,7 +48,7 @@ const Result: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#050810] text-slate-100 font-sans flex flex-col relative overflow-x-hidden overflow-y-auto">
+    <div className="min-h-screen bg-[#050810] text-slate-100 font-sans flex flex-col relative overflow-y-auto animate-in fade-in duration-700">
       {/* Background Ambience */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] -translate-y-1/2" />
@@ -74,7 +74,7 @@ const Result: React.FC = () => {
             <Sparkles size={16} className="text-amber-400" />
             <span className="text-xs font-black text-indigo-400 uppercase tracking-[0.3em]">审判已成定局</span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-widest leading-tight transition-all duration-1000">
+          <h1 className="text-4xl md:text-6xl font-black text-white tracking-widest leading-tight transition-all duration-1000">
             {story.title}
           </h1>
         </div>
@@ -109,7 +109,7 @@ const Result: React.FC = () => {
                 </div>
 
                 <div className="relative">
-                  <p className="text-2xl md:text-3xl lg:text-4xl text-slate-100 leading-[1.6] font-medium text-center drop-shadow-sm selection:bg-indigo-500/30 selection:text-white">
+                  <p className="text-lg md:text-xl lg:text-2xl text-slate-100 leading-[1.6] font-medium text-center drop-shadow-sm selection:bg-indigo-500/30 selection:text-white">
                     {story.answer}
                   </p>
                 </div>
@@ -179,16 +179,27 @@ const Result: React.FC = () => {
         <div className={`mt-20 flex flex-col items-center space-y-6 transition-all duration-1000 delay-500 ${showAnswer ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'}`}>
           <div className="h-px w-24 bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
           
-          <button
-            onClick={() => navigate('/')}
-            className="group relative inline-flex items-center justify-center gap-4 px-12 py-5 bg-white text-slate-950 rounded-full overflow-hidden shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:shadow-[0_20px_50px_rgba(255,255,255,0.2)] transition-all hover:-translate-y-1 active:scale-95"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <Home size={22} className="relative z-10" />
-            <span className="text-lg font-black tracking-widest relative z-10">
-              重返异时空入口
-            </span>
-          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <button
+              onClick={() => navigate(`/game/${id}`)}
+              className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 bg-indigo-600 text-white rounded-full overflow-hidden shadow-lg hover:shadow-indigo-500/20 transition-all hover:-translate-y-1 active:scale-95"
+            >
+              <RotateCcw size={20} className="group-hover:rotate-[-45deg] transition-transform" />
+              <span className="text-base font-bold tracking-widest relative z-10">
+                再来一局
+              </span>
+            </button>
+
+            <button
+              onClick={() => navigate('/')}
+              className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 bg-white/10 hover:bg-white/20 text-white rounded-full border border-white/10 backdrop-blur-xl transition-all hover:-translate-y-1 active:scale-95"
+            >
+              <Home size={20} />
+              <span className="text-base font-bold tracking-widest relative z-10">
+                返回大厅
+              </span>
+            </button>
+          </div>
           
           <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">
             PROJECT ANTIGRAVITY // 2026

@@ -80,3 +80,68 @@ PORT=3001
 | 502 | 后端崩溃 | 后端代码运行时报错（如 Key 无效） |
 | 400 | 参数缺失 | 前端没有发送 `question` 或 `story` |
 | 500 | 后端内部错误 | 业务逻辑报错（如 AI API 调用失败） |
+
+---
+
+## Issue 6: AI 看起来只回复"一个时间"（实为前端打字机效果 Bug）
+
+**现象**：游戏中向 AI 裁判提问，消息气泡内容区为空，只显示气泡右下角的时间戳（如 `08:58`），用户误以为"AI只回复了一个时间"。
+
+**真实根因：React 18 StrictMode 双跑 effect，破坏了 `typingRef` 保护逻辑**
+
+`Message.tsx` 的打字机效果实现如下（有问题的版本）：
+```tsx
+const typingRef = React.useRef<boolean>(false);
+
+React.useEffect(() => {
+  if (isAssistant && !isError && !typingRef.current) {
+    typingRef.current = true; // ← 标记"已在打字"
+    // ... 启动 setInterval 打字
+    return () => clearInterval(timer); // cleanup 取消 timer
+  }
+}, [...]);
+```
+
+React 18 的 **StrictMode 在开发模式下会对每个 effect 执行两次**（mount → cleanup → mount），以检测副作用的幂等性：
+
+| 阶段 | `typingRef.current` | 动作 |
+|------|---------------------|------|
+| 第一次 effect 运行 | `false` | 进入 if 块 → 设为 `true` → 启动 timer |
+| StrictMode cleanup | — | timer 被 clearInterval 取消 |
+| **第二次 effect 运行** | **`true`（ref 跨渲染持久）** | **跳过 if 块 → 动画永远不再启动** |
+
+最终 `displayText` 永远是初始值空字符串 `''`，文字内容不显示，用户只看到气泡底部的时间戳。
+
+**注意**：AI 本身回复是正确的（"是"/"不是"等），只是前端没有渲染出来。
+
+**解决方案**：
+
+删除 `typingRef`，不用"保护 flag"，让 React 的 cleanup 机制正确处理：
+```tsx
+React.useEffect(() => {
+  if (!isAssistant || isError) {
+    setDisplayText(message.content);
+    return;
+  }
+
+  // 每次 effect 重跑都从头开始（cleanup 会取消上一个 timer）
+  setDisplayText('');
+  let i = 0;
+  const timer = setInterval(() => {
+    if (i < message.content.length) {
+      setDisplayText(message.content.substring(0, i + 1));
+      i++;
+    } else {
+      clearInterval(timer);
+    }
+  }, 20);
+
+  return () => clearInterval(timer); // cleanup 正确取消 timer
+}, [message.content, isAssistant, isError]);
+```
+
+**经验总结**：
+- React 18 StrictMode 开发模式下会双跑 effect，用 `ref` 做"只运行一次"的 flag 在 StrictMode 下会失效
+- 正确的幂等性写法是：让 effect 可以安全地重复执行，并在 cleanup 里清理副作用
+- `typingRef` 这类"防重复"guard 应该用 `started` 局部变量替代，或完全依赖 React 的 cleanup 机制
+- 生产构建（`npm run build`）不运行 StrictMode 双跑，所以这类 bug 只出现在开发环境

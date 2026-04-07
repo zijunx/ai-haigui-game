@@ -26,5 +26,6 @@ export type TMessage = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  atmosphere?: string | null;
   timestamp: number;
 };

@@ -7,9 +7,10 @@ interface ChatBoxProps {
   messages: TMessage[];
   onSendMessage: (content: string) => void;
   isLoading?: boolean;
+  onRetry?: () => void;
 }
 
-const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSendMessage, isLoading }) => {
+const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSendMessage, isLoading, onRetry }) => {
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -95,7 +96,10 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSendMessage, isLoading })
         <div className="space-y-6">
           {messages.map((msg, idx) => (
             <div key={msg.id} className="animate-in slide-in-from-bottom-2 fade-in duration-500 fill-mode-both" style={{ animationDelay: `${idx * 50}ms` }}>
-              <Message message={msg} />
+              <Message 
+                message={msg} 
+                onRetry={idx === messages.length - 1 ? onRetry : undefined} 
+              />
             </div>
           ))}
         </div>
@@ -123,18 +127,18 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSendMessage, isLoading })
       </div>
 
       {/* Input area */}
-      <div className="px-4 pb-6 pt-2 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent relative z-30">
+      <div className="px-3 pb-3 pt-2 sm:px-4 sm:pb-6 sm:pt-2 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent relative z-30">
         <form 
           onSubmit={handleSubmit}
           className="relative max-w-3xl mx-auto group"
         >
           {/* Subtle glow effect */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-3xl blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-7x00" />
+          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-3xl blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-700" />
           
-          <div className="relative bg-slate-900/60 backdrop-blur-3xl border border-white/10 rounded-[28px] p-2 shadow-2xl flex items-center gap-1 focus-within:border-indigo-500/40 transition-all duration-500">
+          <div className="relative bg-slate-900/60 backdrop-blur-3xl border border-white/10 rounded-[24px] sm:rounded-[28px] p-1.5 sm:p-2 shadow-2xl flex items-center gap-1 focus-within:border-indigo-500/40 transition-all duration-500">
             <button 
               type="button" 
-              className="p-3.5 text-slate-500 hover:text-amber-400 transition-colors hidden sm:block"
+              className="p-3.5 text-slate-500 hover:text-amber-400 transition-colors hidden md:block"
               title="获取线索"
             >
               <HelpCircle size={20} />
@@ -147,16 +151,16 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSendMessage, isLoading })
               onKeyDown={handleKeyDown}
               disabled={isLoading}
               placeholder={isLoading ? "请在那片迷雾中等待..." : "输入你的大胆猜想..."} 
-              className="flex-1 bg-transparent border-none focus:ring-0 text-[15px] px-4 py-3 text-slate-100 placeholder:text-slate-600 outline-none"
+              className="flex-1 bg-transparent border-none focus:ring-0 text-[14px] sm:text-[15px] px-3 sm:px-4 py-2.5 sm:py-3 text-slate-100 placeholder:text-slate-600 outline-none"
             />
             
             <button 
               type="submit" 
               disabled={!inputValue.trim() || isLoading}
-              className={`flex items-center gap-2 px-6 py-3 rounded-2xl transition-all duration-500 relative group/btn ${
+              className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-[18px] sm:rounded-2xl transition-all duration-300 relative group/btn active:scale-95 ${
                 inputValue.trim() && !isLoading
-                  ? 'bg-white text-slate-950 hover:bg-indigo-50' 
-                  : 'bg-slate-800 text-slate-600 cursor-not-allowed'
+                  ? 'bg-white text-slate-950 hover:bg-indigo-50 shadow-lg shadow-white/5' 
+                  : 'bg-slate-800 text-slate-600 cursor-not-allowed opacity-50'
               }`}
             >
               <span className="text-sm font-black tracking-widest hidden sm:inline">提问</span>
@@ -166,7 +170,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSendMessage, isLoading })
         </form>
         
         {/* Floating Quick Action / Hint (Optional Desktop only) */}
-        <div className="mt-3 text-center">
+        <div className="mt-2 text-center hidden sm:block">
           <p className="text-[9px] font-bold text-slate-700 uppercase tracking-[0.4em] animate-pulse">
             SYSTEM // AI JUDICIARY ACTIVE
           </p>

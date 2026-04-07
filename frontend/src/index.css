@@ -16,12 +16,22 @@
   --color-emerald-400: #34d399;
 }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
   min-width: 320px;
-  min-height: 100vh;
   background-color: var(--color-slate-900);
   color: var(--color-slate-50);
+  touch-action: manipulation; /* 防止双击缩放导致的点击延迟 */
 }
 
 @layer utilities {

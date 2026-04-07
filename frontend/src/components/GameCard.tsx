@@ -23,7 +23,7 @@ const GameCard: React.FC<GameCardProps> = ({ story }) => {
   return (
     <div 
       onClick={handleStartGame}
-      className="group relative bg-slate-800/50 border border-slate-700 hover:border-amber-400/50 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:shadow-[0_0_20px_rgba(251,191,36,0.1)] hover:-translate-y-1 overflow-hidden"
+      className="group relative bg-slate-800/50 border border-slate-700 hover:border-amber-400/50 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:shadow-[0_0_20px_rgba(251,191,36,0.1)] hover:-translate-y-1 active:scale-95 overflow-hidden"
     >
       {/* Background Decor */}
       <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">

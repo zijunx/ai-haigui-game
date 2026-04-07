@@ -6,6 +6,8 @@ import { stories } from '../data/stories';
 import { askAI } from '../api';
 import type { TMessage } from '../types';
 
+console.log("🔥 GAME TSX NEW VERSION LOADED 🔥");
+
 const Game: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

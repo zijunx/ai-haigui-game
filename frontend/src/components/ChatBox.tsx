@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, HelpCircle } from 'lucide-react';
+import { Send, HelpCircle, MessageSquare, ShieldCheck, Sparkles } from 'lucide-react';
 import Message from './Message';
 import type { TMessage } from '../types';
 
@@ -21,7 +21,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSendMessage, isLoading })
         behavior: 'smooth',
       });
     }
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,37 +37,84 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSendMessage, isLoading })
     }
   };
 
+  // Only count user messages to decide empty state
+  const userMessages = messages.filter(m => m.role === 'user');
+
   return (
-    <div className="flex flex-col h-full relative">
-      {/* Messages area */}
+    <div className="flex flex-col h-full relative overflow-hidden">
+      {/* Scrollable Messages area */}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4 py-6 space-y-2 scrollbar-none"
+        className="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-6 scrollbar-none"
       >
-        <div className="text-center py-6 mb-4">
-          <div className="inline-block px-3 py-1 bg-slate-800/50 backdrop-blur rounded-full border border-slate-800/50">
-            <p className="text-slate-500 text-[10px] uppercase font-bold tracking-[0.2em]">真相就在迷雾中</p>
+        {/* Welcome / Header */}
+        <div className="text-center py-4 mb-2 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-slate-800/30 backdrop-blur rounded-full border border-slate-700/30 shadow-inner">
+            <ShieldCheck size={12} className="text-indigo-400" />
+            <p className="text-slate-500 text-[10px] uppercase font-black tracking-[0.3em]">
+               AI 裁决进行中 // ENCRYPTED
+            </p>
           </div>
         </div>
 
-        {messages.map((msg) => (
-          <Message key={msg.id} message={msg} />
-        ))}
-        
-        {isLoading && (
-          <div className="flex justify-start mb-6">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0">
-                <span className="text-white text-xs font-bold">AI</span>
+        {/* Empty State */}
+        {userMessages.length === 0 && !isLoading && (
+          <div className="flex flex-col items-center justify-center py-12 px-6 text-center animate-in zoom-in-95 fade-in duration-1000">
+            <div className="w-20 h-20 bg-indigo-500/5 rounded-[32px] border border-indigo-500/10 flex items-center justify-center mb-8 relative">
+              <MessageSquare size={32} className="text-indigo-500/40" />
+              <div className="absolute -top-1 -right-1">
+                 <Sparkles size={20} className="text-amber-500 animate-pulse" />
               </div>
-              <div className="px-5 py-3 bg-white rounded-2xl rounded-tl-none border border-slate-100 shadow-sm">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-slate-400 text-sm">思考中</span>
-                  <span className="flex gap-0.5">
-                    <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                    <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                    <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:300ms]" />
-                  </span>
+            </div>
+            <h3 className="text-xl font-black text-white mb-3 tracking-tight">拨开真相的迷雾</h3>
+            <p className="text-slate-400 text-sm max-w-xs leading-relaxed font-medium">
+              在下方输入你的提问。我会根据逻辑回答“是”、“不是”或“与此无关”。
+            </p>
+            
+            {/* Quick Suggestions */}
+            <div className="mt-10 flex flex-wrap justify-center gap-2 w-full max-w-md">
+              <button 
+                onClick={() => onSendMessage("这是由于意外发生的吗？")}
+                className="px-4 py-2.5 bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-white rounded-2xl text-[11px] font-bold border border-slate-700/30 transition-all flex items-center gap-2 group"
+              >
+                <span>这是由于意外发生的吗？</span>
+                <Send size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+              <button 
+                onClick={() => onSendMessage("死者是一名男性吗？")}
+                className="px-4 py-2.5 bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-white rounded-2xl text-[11px] font-bold border border-slate-700/30 transition-all flex items-center gap-2 group"
+              >
+                <span>死者是一名男性吗？</span>
+                <Send size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Message Rendering with animations */}
+        <div className="space-y-6">
+          {messages.map((msg, idx) => (
+            <div key={msg.id} className="animate-in slide-in-from-bottom-2 fade-in duration-500 fill-mode-both" style={{ animationDelay: `${idx * 50}ms` }}>
+              <Message message={msg} />
+            </div>
+          ))}
+        </div>
+        
+        {/* Loading / Typing Animation */}
+        {isLoading && (
+          <div className="flex justify-start mb-6 animate-in slide-in-from-left-4 fade-in duration-500">
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0 shadow-lg shadow-indigo-600/20">
+                <Sparkles size={18} className="text-white animate-pulse" />
+              </div>
+              <div className="px-6 py-4 bg-slate-800/80 backdrop-blur-sm rounded-3xl rounded-tl-none border border-white/5 shadow-xl">
+                <div className="flex items-center gap-3">
+                  <span className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">裁决中</span>
+                  <div className="flex gap-1">
+                    <span className="w-1 h-1 bg-indigo-500 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:-0.32s]" />
+                    <span className="w-1 h-1 bg-indigo-500 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:-0.16s]" />
+                    <span className="w-1 h-1 bg-indigo-500 rounded-full animate-bounce [animation-duration:0.8s]" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -76,41 +123,54 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSendMessage, isLoading })
       </div>
 
       {/* Input area */}
-      <div className="p-4 bg-gradient-to-t from-slate-900 via-slate-900 to-transparent">
+      <div className="px-4 pb-6 pt-2 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent relative z-30">
         <form 
           onSubmit={handleSubmit}
-          className="relative max-w-2xl mx-auto group"
+          className="relative max-w-3xl mx-auto group"
         >
-          <div className="bg-slate-800 border border-slate-700/50 rounded-2xl p-1.5 shadow-2xl flex items-center gap-2 pr-4 focus-within:ring-2 focus-within:ring-amber-400/30 transition-all duration-300">
+          {/* Subtle glow effect */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-3xl blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-7x00" />
+          
+          <div className="relative bg-slate-900/60 backdrop-blur-3xl border border-white/10 rounded-[28px] p-2 shadow-2xl flex items-center gap-1 focus-within:border-indigo-500/40 transition-all duration-500">
             <button 
               type="button" 
-              className="p-3 text-slate-500 hover:text-amber-400 transition-colors"
-              title="Need a hint?"
+              className="p-3.5 text-slate-500 hover:text-amber-400 transition-colors hidden sm:block"
+              title="获取线索"
             >
-              <HelpCircle size={22} />
+              <HelpCircle size={20} />
             </button>
+            
             <input 
               type="text" 
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isLoading}
-              placeholder="输入你的推测（例如：死者是自杀吗？）" 
-              className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-3 text-slate-100 placeholder:text-slate-600 outline-none"
+              placeholder={isLoading ? "请在那片迷雾中等待..." : "输入你的大胆猜想..."} 
+              className="flex-1 bg-transparent border-none focus:ring-0 text-[15px] px-4 py-3 text-slate-100 placeholder:text-slate-600 outline-none"
             />
+            
             <button 
               type="submit" 
               disabled={!inputValue.trim() || isLoading}
-              className={`p-2.5 rounded-xl transition-all duration-300 ${
+              className={`flex items-center gap-2 px-6 py-3 rounded-2xl transition-all duration-500 relative group/btn ${
                 inputValue.trim() && !isLoading
-                  ? 'bg-amber-400 text-slate-900 shadow-lg shadow-amber-400/20 hover:scale-105 active:scale-95' 
-                  : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                  ? 'bg-white text-slate-950 hover:bg-indigo-50' 
+                  : 'bg-slate-800 text-slate-600 cursor-not-allowed'
               }`}
             >
-              <Send size={18} className={inputValue.trim() ? 'animate-in zoom-in' : ''} />
+              <span className="text-sm font-black tracking-widest hidden sm:inline">提问</span>
+              <Send size={16} className={`${inputValue.trim() && !isLoading ? 'group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform' : ''}`} />
             </button>
           </div>
         </form>
+        
+        {/* Floating Quick Action / Hint (Optional Desktop only) */}
+        <div className="mt-3 text-center">
+          <p className="text-[9px] font-bold text-slate-700 uppercase tracking-[0.4em] animate-pulse">
+            SYSTEM // AI JUDICIARY ACTIVE
+          </p>
+        </div>
       </div>
     </div>
   );

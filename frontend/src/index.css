@@ -32,4 +32,27 @@ body {
   .scrollbar-none::-webkit-scrollbar {
     display: none; /* Chrome, Safari and Opera */
   }
+
+  @keyframes slideInFromBottom {
+    0% { transform: translateY(10px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  .animate-in {
+    animation-fill-mode: both;
+    animation-duration: 400ms;
+  }
+
+  .fade-in {
+    animation-name: fadeIn;
+  }
+
+  .slide-in-from-bottom-2 {
+    animation-name: slideInFromBottom;
+  }
 }

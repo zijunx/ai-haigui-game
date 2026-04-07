@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Key, LogOut, MessageSquareText, Sparkles, BookOpen } from 'lucide-react';
+import { ChevronLeft, Key, LogOut, MessageSquareText, Sparkles, BookOpen, AlertTriangle } from 'lucide-react';
 import ChatBox from '../components/ChatBox';
 import { stories } from '../data/stories';
 import { askAI } from '../api';
@@ -15,19 +15,17 @@ const Game: React.FC = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [showSurface, setShowSurface] = useState(true);
-  const [showAnswer, setShowAnswer] = useState(false);
+  const [isAbandoning, setIsAbandoning] = useState(false); // New: abandonment confirmation state
 
   // 2. Initial conversation state
   const [messages, setMessages] = useState<TMessage[]>([]);
 
   useEffect(() => {
     if (!story) {
-      // If story not found, redirect to home
       navigate('/', { replace: true });
       return;
     }
 
-    // Set welcome message
     setMessages([
       {
         id: 'welcome',
@@ -39,9 +37,8 @@ const Game: React.FC = () => {
   }, [story, navigate]);
 
   const handleSendMessage = async (content: string) => {
-    if (!story) return;
+    if (!story || isLoading) return;
 
-    // 1. 立即显示用户消息
     const userMsg: TMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -51,7 +48,6 @@ const Game: React.FC = () => {
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
 
-    // 2. 调用 AI API
     try {
       const aiText = await askAI(content, story);
       const aiMsg: TMessage = {
@@ -62,13 +58,13 @@ const Game: React.FC = () => {
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err) {
-      const errMsg: TMessage = {
+      const aiMsg: TMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: `⚠️ 裁判暂时失联，请稍后再试。\n（${err instanceof Error ? err.message : '未知错误'}）`,
         timestamp: Date.now(),
       };
-      setMessages((prev) => [...prev, errMsg]);
+      setMessages((prev) => [...prev, aiMsg]);
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +78,7 @@ const Game: React.FC = () => {
       <header className="h-16 shrink-0 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900/90 backdrop-blur-xl z-20">
         <div className="flex items-center gap-4">
           <button 
-            onClick={() => navigate('/')}
+            onClick={() => setIsAbandoning(true)}
             className="p-2.5 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-all active:scale-90"
           >
             <ChevronLeft size={20} />
@@ -111,7 +107,7 @@ const Game: React.FC = () => {
         </div>
       </header>
 
-      {/* Surface Overlay / Panel */}
+      {/* Surface Overlay */}
       <div className={`shrink-0 transition-all duration-500 ease-in-out px-4 py-3 bg-slate-800/40 border-b border-slate-800/50 ${showSurface ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 absolute'}`}>
         <div className="max-w-3xl mx-auto flex gap-4 items-start">
           <div className="p-2.5 bg-amber-500/10 rounded-xl">
@@ -150,10 +146,10 @@ const Game: React.FC = () => {
         />
       </main>
 
-      {/* Action Bar (Footer) */}
+      {/* Action Bar */}
       <div className="h-20 shrink-0 bg-slate-950/80 backdrop-blur-2xl border-t border-slate-800 flex items-center justify-between px-6 z-20">
         <button 
-          onClick={() => navigate('/')}
+          onClick={() => setIsAbandoning(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/5 transition-all text-sm font-bold group"
         >
           <LogOut size={18} className="rotate-180 group-hover:-translate-x-1 transition-transform" />
@@ -161,7 +157,7 @@ const Game: React.FC = () => {
         </button>
 
         <button 
-          onClick={() => setShowAnswer(true)}
+          onClick={() => navigate(`/result?id=${id}`, { state: { messages } })}
           className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-xl text-white shadow-lg shadow-indigo-500/20 active:scale-95 transition-all text-sm font-bold"
         >
           <Key size={18} />
@@ -169,45 +165,40 @@ const Game: React.FC = () => {
         </button>
       </div>
 
-      {/* Answer Modal (Simple implementation) */}
-      {showAnswer && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
-            <div className="p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-indigo-500/20 rounded-2xl">
-                  <Key size={24} className="text-indigo-400" />
-                </div>
-                <h3 className="text-xl font-black tracking-tight">故事真相 (The Answer)</h3>
+      {/* Abandon Confirmation Modal */}
+      {isAbandoning && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertTriangle size={32} className="text-red-500" />
               </div>
+              <h3 className="text-xl font-black mb-2">中途放弃？</h3>
+              <p className="text-slate-400 text-sm mb-8 leading-relaxed">
+                真相近在咫尺，你确定要现在结束审判吗？你可以选择直接查看汤底。
+              </p>
               
-              <div className="space-y-6">
-                <div>
-                  <p className="text-slate-300 leading-relaxed text-[15px]">
-                    {story.answer}
-                  </p>
-                </div>
-                
-                <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-800">
-                  <h5 className="text-[10px] font-black uppercase text-indigo-400 tracking-widest mb-2">关键线索</h5>
-                  <ul className="space-y-2">
-                    {story.keyPoints.map((point, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs text-slate-400">
-                        <span className="text-amber-500 mt-0.5">✦</span> {point}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <div className="mt-8 flex justify-end">
+              <div className="grid grid-cols-2 gap-3">
                 <button 
-                  onClick={() => setShowAnswer(false)}
-                  className="px-8 py-3 bg-slate-800 hover:bg-slate-700 rounded-2xl text-sm font-bold transition-all"
+                  onClick={() => setIsAbandoning(false)}
+                  className="px-4 py-3 bg-slate-800 hover:bg-slate-700 rounded-2xl text-sm font-bold transition-all"
                 >
-                  继续思考
+                  继续挑战
+                </button>
+                <button 
+                  onClick={() => navigate('/')}
+                  className="px-4 py-3 bg-red-600 hover:bg-red-500 text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-red-600/20"
+                >
+                  确认离开
                 </button>
               </div>
+              
+              <button 
+                onClick={() => navigate(`/result?id=${id}`, { state: { messages } })}
+                className="w-full mt-4 py-3 text-slate-500 hover:text-indigo-400 text-xs font-bold transition-colors uppercase tracking-widest"
+              >
+                不玩了，直接看汤底
+              </button>
             </div>
           </div>
         </div>
